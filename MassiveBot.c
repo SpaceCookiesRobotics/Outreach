@@ -13,45 +13,12 @@
 #include "../Shared/Accelerometer.h"
 
 bool Roughly(int measurement, int value, float tolerance) {
-  return abs(value - measurement) < tolerance * value;
+	return abs(value - measurement) < tolerance * value;
 }
 
 #define TOLERANCE 0.1
 
 task main() {
-	// At startup, try to spin the MotorTester motor. If we get a read-out, stay in
-  // calibration mode.
-  motor[MotorTester] = 127;
-  int previous = SensorValue[RPM];
-  int rpm = 0;
-  int startTime = time1[T1];
-  while (true) {
-  	wait1Msec(100);
-  	int current = SensorValue[RPM];
-  	int increment = abs(previous - current);
-  	previous = current;
-    // The shaft encoder has 180 increments per revolution, and we have 600 measurements
-  	// per minute.
-  	rpm = 0.9 * (increment * 600 / 180);
-  	clearLCDLine(0);
-  	displayLCDString(0, 0, "RPM");
-  	displayLCDNumber(0, 5, rpm);
-  	clearLCDLine(1);
-  	if (Roughly(rpm, 240, TOLERANCE)) {
-  		displayLCDString(1, 1, "Turbo");
-  	} else if (Roughly(rpm, 160, TOLERANCE)) {
-  		displayLCDString(1, 1, "High-speed");
-  	} else if (Roughly(rpm, 100, TOLERANCE)) {
-  		displayLCDString(1, 1, "Normal");
-  	} else {
-  	  displayLCDString(1, 1, "Unknown");
-    }
-    // If it's not spinning, no motor is connected to the tester.
-    if (time1[T1] > startTime + 1000 && rpm == 0) {
-    	break;
-    }
-  }
-  motor[MotorTester] = 0;
 	int max = 0;
 	while(true) {
 		// Left:  V:Ch3 H:Ch4
@@ -67,8 +34,8 @@ task main() {
 		motor[BackLeft]   = 1.0 * (arcade_fwrd + crab_fwrd + arcade_turn + crab_side);
 
 		int shock =
-		    abs(AnalogToMilliGees(SensorValue[blahX])) +
-		    abs(AnalogToMilliGees(SensorValue[blahY]));
+		abs(AnalogToMilliGees(SensorValue[blahX])) +
+		abs(AnalogToMilliGees(SensorValue[blahY]));
 		if (shock > max) {
 			clearLCDLine(0); displayLCDNumber(0, 1, shock);
 			max = shock;
@@ -86,6 +53,44 @@ task main() {
 			motor[BackLeft] = 0;
 			motor[BackRight] = 0;
 			sleep(10000);  // 10s
+			clearLCDLine(1);
+		}
+		if (nLCDButtons & 4) {
+			// Enter the Motor tester code if the right button of the display is pressed
+			// At startup, try to spin the MotorTester motor. If we get a read-out, stay in
+			// calibration mode.
+			motor[MotorTester] = 127;
+			int previous = SensorValue[RPM];
+			int rpm = 0;
+			int startTime = time1[T1];
+			while (nLCDButtons & 4) {
+				wait1Msec(100);
+				int current = SensorValue[RPM];
+				int increment = abs(previous - current);
+				previous = current;
+				// The shaft encoder has 180 increments per revolution, and we have 600 measurements
+				// per minute.
+				rpm = 0.9 * (increment * 600 / 180);
+				clearLCDLine(0);
+				displayLCDString(0, 0, "RPM");
+				displayLCDNumber(0, 5, rpm);
+				clearLCDLine(1);
+				if (Roughly(rpm, 240, TOLERANCE)) {
+					displayLCDString(1, 1, "Turbo");
+					} else if (Roughly(rpm, 160, TOLERANCE)) {
+					displayLCDString(1, 1, "High-speed");
+					} else if (Roughly(rpm, 100, TOLERANCE)) {
+					displayLCDString(1, 1, "Normal");
+					} else {
+					displayLCDString(1, 1, "Unknown");
+				}
+				// If it's not spinning, no motor is connected to the tester.
+				if (time1[T1] > startTime + 1000 && rpm == 0) {
+					break;
+				}
+			}
+			motor[MotorTester] = 0;
+			clearLCDLine(0);
 			clearLCDLine(1);
 		}
 	}
