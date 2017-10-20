@@ -47,10 +47,10 @@ void joystick() {
 		}
 		bool cheater = vexRT[Btn5U] && vexRT[Btn6D];
 
-		clearLCDLine(1); displayLCDCenteredString(1, cheater ? "Boss" : "Careful");
+		displayLCDString(0, 5, cheater ? "Boss" : "Careful");
 
 		// Driver goes to the Penalty box if the accelerometer triggers
-		if (shock > 400 && !cheater) {
+		if (shock > 500 && !cheater) {
 			clearLCDLine(1); displayLCDCenteredString(1, "Penalty");
 			playSound(soundDownwardTones);
 			motor[FrontLeft] = 0;
@@ -76,18 +76,17 @@ void joystick() {
 				// The shaft encoder has 180 increments per revolution, and we have 600 measurements
 				// per minute.
 				rpm = 0.9 * (increment * 600 / 180);
-				clearLCDLine(0);
-				displayLCDString(0, 0, "RPM");
-				displayLCDNumber(0, 5, rpm);
 				clearLCDLine(1);
+				displayLCDString(1, 0, "RPM");
+				displayLCDNumber(1, 4, rpm);
 				if (Roughly(rpm, 240, TOLERANCE)) {
-					displayLCDString(1, 1, "Turbo");
+					displayLCDString(1, 8, "Turbo");
 					} else if (Roughly(rpm, 160, TOLERANCE)) {
-					displayLCDString(1, 1, "High-speed");
+					displayLCDString(1, 8, "High-speed");
 					} else if (Roughly(rpm, 100, TOLERANCE)) {
-					displayLCDString(1, 1, "Normal");
+					displayLCDString(1, 8, "Normal");
 					} else {
-					displayLCDString(1, 1, "Unknown");
+					displayLCDString(1, 8, "Unknown");
 				}
 				// If it's not spinning, no motor is connected to the tester.
 				if (time1[T1] > startTime + 1000 && rpm == 0) {
@@ -95,7 +94,6 @@ void joystick() {
 				}
 			}
 			motor[MotorTester] = 0;
-			clearLCDLine(0);
 			clearLCDLine(1);
 		}
 	}
